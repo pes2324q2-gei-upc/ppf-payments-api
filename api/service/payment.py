@@ -2,7 +2,7 @@ import datetime
 from django.conf import settings
 from rest_framework.exceptions import ValidationError
 from common.models.route import Route, RoutePassenger
-from common.models.payment import Payment
+from common.models.payment import Payment, Refund
 import stripe
 
 
@@ -34,6 +34,7 @@ def processPayment(routeId: int, passengerId: int, paymentMethodId: str):
             amount=route.price,
             date=datetime.now(),  # type: ignore
             description=f"Joined route {routeId} for ${route.price} at {datetime.now()}",  # type: ignore
+            paymentIntentId=paymentIntent.id,
         )
 
         RoutePassenger.objects.create(route_id=routeId, passenger_id=passengerId)
@@ -42,7 +43,7 @@ def processPayment(routeId: int, passengerId: int, paymentMethodId: str):
         raise ValidationError("Payment failed", 400)
 
 
-def processRefund(payment_intent_id: str):
+def processRefund(payment: Payment):
     """
     Process a refund for a payment.
 
@@ -51,9 +52,17 @@ def processRefund(payment_intent_id: str):
     """
     stripe.api_key = settings.STRIPE_SECRET_KEY
 
-    refund = stripe.Refund.create(payment_intent=payment_intent_id)
+    paymentIntentId = payment.paymentIntentId
+    refund = stripe.Refund.create(payment_intent=paymentIntentId)
 
     if refund.status == "succeeded":
+        # If refund is successful, create a refund record
+        Refund.objects.create(
+            payment=payment,
+            date=datetime.now(),  # type: ignore
+            reason="User left the route less than 24 hours before departure",
+        )
+
         return {"message": "Refund processed successfully.", "status": 200}
     else:
         raise ValidationError("Refund failed", 400)
