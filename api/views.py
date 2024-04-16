@@ -25,19 +25,23 @@ class CreatePaymentView(CreateAPIView):
     Create a payment record.
     """
 
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        routeId = self.kwargs["pk"]
         userId = request.user.id
 
         # Token payment_method obtained from frontend
         paymentMethodId = request.data.get("payment_method_id")
+        routeId = request.data.get("routeID")
+
         if not paymentMethodId:
             return Response(
                 {"error": "Payment method ID is required."}, status=HTTP_400_BAD_REQUEST
             )
+
+        if not routeId:
+            return Response({"error": "Route ID is required."}, status=HTTP_400_BAD_REQUEST)
 
         try:
             processPayment(routeId, userId, paymentMethodId)

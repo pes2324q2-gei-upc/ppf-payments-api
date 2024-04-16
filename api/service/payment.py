@@ -1,6 +1,7 @@
-import datetime
+from datetime import datetime
 from django.conf import settings
 from rest_framework.exceptions import ValidationError
+from common.models.user import User
 from common.models.route import Route, RoutePassenger
 from common.models.payment import Payment, Refund
 import stripe
@@ -12,10 +13,11 @@ def processPayment(routeId: int, passengerId: int, paymentMethodId: str):
 
     Args:
         route_id (int): The ID of the route.
-        user_id (int): The ID of the user.
+        passengerId (int): The ID of the user.
         payment_method_id (str): The ID of the payment method.
     """
     route = Route.objects.get(id=routeId)
+    user = User.objects.get(id=1)  # passengerId) quitar cuando funcione autentificacion
     price = route.price
 
     stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -25,19 +27,27 @@ def processPayment(routeId: int, passengerId: int, paymentMethodId: str):
         currency="usd",
         payment_method=paymentMethodId,  # Payment method ID from the client
         confirm=True,  # Create and Confirm at the same time
+        automatic_payment_methods={  # enable no redirect
+            "enabled": True,
+            "allow_redirects": "never",
+        },
+        # Specify a return_url if you want to redirect the user back to a specific page after successfull payment
     )
 
     if paymentIntent.status == "succeeded":
         # If payment is successful, create a transaction record
         Payment.objects.create(
-            user=passengerId,
+            user=user,
+            route=route,
             amount=route.price,
             date=datetime.now(),  # type: ignore
             description=f"Joined route {routeId} for ${route.price} at {datetime.now()}",  # type: ignore
             paymentIntentId=paymentIntent.id,
         )
 
-        RoutePassenger.objects.create(route_id=routeId, passenger_id=passengerId)
+        RoutePassenger.objects.create(
+            route_id=routeId, passenger_id=1
+        )  # passengerId) # Quitar cuando funcione autentificacion
         return {"message": "Successfully joined the route and processed payment.", "status": 200}
     else:
         raise ValidationError("Payment failed", 400)
