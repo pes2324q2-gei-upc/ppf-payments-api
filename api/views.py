@@ -2,19 +2,22 @@
 This module contains the views for the API endpoints related to payments.
 """
 
+from django.shortcuts import render
 from rest_framework.generics import CreateAPIView
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .serializers import PaymentSerializer
-from common.models.payment import Payment
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_400_BAD_REQUEST,
 )
-from service.payment import processPayment
+from .service.payment import processPayment
 
 # Create your views here.
+
+
+def stripe_test(request):
+    return render(request, "stripe_test.html")
 
 
 class CreatePaymentView(CreateAPIView):
@@ -44,5 +47,3 @@ class CreatePaymentView(CreateAPIView):
             )
         except Exception as e:
             return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)
-
-
