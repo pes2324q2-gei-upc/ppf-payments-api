@@ -17,7 +17,7 @@ def processPayment(routeId: int, passengerId: int, paymentMethodId: str):
         payment_method_id (str): The ID of the payment method.
     """
     route = Route.objects.get(id=routeId)
-    user = User.objects.get(id=1)  # passengerId) quitar cuando funcione autentificacion
+    user = User.objects.get(id=passengerId)
     price = route.price
 
     stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -45,9 +45,7 @@ def processPayment(routeId: int, passengerId: int, paymentMethodId: str):
             paymentIntentId=paymentIntent.id,
         )
 
-        RoutePassenger.objects.create(
-            route_id=routeId, passenger_id=1
-        )  # passengerId) # Quitar cuando funcione autentificacion
+        RoutePassenger.objects.create(route_id=routeId, passenger_id=passengerId)
         return {"message": "Successfully joined the route and processed payment.", "status": 200}
     else:
         raise ValidationError("Payment failed", 400)

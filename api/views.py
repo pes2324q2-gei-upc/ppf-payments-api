@@ -25,8 +25,8 @@ class CreatePaymentView(CreateAPIView):
     Create a payment record.
     """
 
-    # authentication_classes = [TokenAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         userId = request.user.id
