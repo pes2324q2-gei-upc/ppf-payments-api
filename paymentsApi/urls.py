@@ -38,4 +38,5 @@ urlpatterns = [
     path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
     path("process_payment/", views.CreatePaymentView.as_view(), name="process-payment"),
     path("stripe_test/", views.stripe_test, name="stripe_test"),
+    path("refund/", views.CreateRefundView.as_view(), name="refund"),
 ]

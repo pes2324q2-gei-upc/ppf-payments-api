@@ -54,7 +54,8 @@ class CreatePaymentView(CreateAPIView):
         user = User.objects.get(id=request.user.id)
         priceForStripe = route.price * 100  # Stripe manage amount in cents
 
-        if Payment.objects.filter(user=user, route=route).exists():
+        # If a Payment is created and not Refunded, it means the user still in the route
+        if Payment.objects.filter(user=user, route=route, isRefunded=False).exists():
             return Response(
                 {"error": "You have already paid for this route."},
                 status=HTTP_400_BAD_REQUEST,
