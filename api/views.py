@@ -40,7 +40,7 @@ class CreatePaymentView(CreateAPIView):
     def post(self, request, *args, **kwargs):
         # Token payment_method obtained from frontend
         paymentMethodId = request.data.get("payment_method_id")
-        routeId = request.data.get("routeID")
+        routeId = request.data.get("route_id")
 
         if not paymentMethodId:
             return Response(
@@ -68,7 +68,6 @@ class CreatePaymentView(CreateAPIView):
             currency="eur",
             payment_method=paymentMethodId,  # Payment method ID from the client
             confirm=True,  # Create and Confirm at the same time
-            receipt_email="powerpathfinderppf@gmail.com",
             automatic_payment_methods={  # enable no redirect
                 "enabled": True,
                 "allow_redirects": "never",
@@ -114,6 +113,7 @@ class CreateRefundView(CreateAPIView):
         )
 
         if refund.status == "succeeded":
+            Payment.objects.filter(paymentIntentId=paymentIntentId).update(isRefunded=True)
             return Response({"message": "Refund processed successfully."}, status=HTTP_200_OK)
         else:
             return Response({"Refund failed"}, status=HTTP_400_BAD_REQUEST)
