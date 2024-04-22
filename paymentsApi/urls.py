@@ -18,7 +18,7 @@ Including another URLconf
 from django.urls import path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
-from rest_framework import permissions
+from rest_framework import authentication, permissions
 from api import views
 
 schema_view = get_schema_view(
@@ -31,6 +31,7 @@ schema_view = get_schema_view(
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),
+    authentication_classes=[authentication.TokenAuthentication],
 )
 
 urlpatterns = [
