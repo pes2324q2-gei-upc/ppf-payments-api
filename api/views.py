@@ -5,6 +5,8 @@ This module contains the views for the API endpoints related to payments.
 from datetime import datetime
 from django.shortcuts import render
 from django.conf import settings
+from common.models import route
+from stripe import PaymentIntent
 from rest_framework.generics import CreateAPIView
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -105,13 +107,20 @@ class CreateRefundView(CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        paymentIntentId = request.data.get("payment_intent_id")
+        userId = request.data.get("user_id")
+        routeId = request.data.get("route_id")
+        
+        if User.objects.filter(id=userId).exists() is False:
+            return Response({"error": "User not found."}, status=HTTP_400_BAD_REQUEST)
 
-        if not paymentIntentId:
-            return Response(
-                {"error": "Payment intent ID is required."}, status=HTTP_400_BAD_REQUEST
-            )
+        if Route.objects.filter(id=routeId).exists() is False:
+            return Response({"error": "Route not found."}, status=HTTP_400_BAD_REQUEST)
 
+        user = User.objects.get(id=userId)
+        route = Route.objects.get(id=routeId)
+
+        paymentIntentId = Payment.objects.get(user=user, route=routeId).paymentIntentId
+        
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
         try:

@@ -23,4 +23,5 @@ class RefundSerializer(serializers.Serializer):
         and create the JSON
     """
 
-    payment_intent_id = serializers.CharField(max_length=100)
+    user_id = serializers.IntegerField(required=True)
+    route_id = serializers.IntegerField(required=True)
