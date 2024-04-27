@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from common.models.route import Route
 
 
 class PaymentSerializer(serializers.Serializer):
@@ -11,7 +12,7 @@ class PaymentSerializer(serializers.Serializer):
     """
 
     payment_method_id = serializers.CharField(max_length=100)
-    route_id = serializers.IntegerField()
+    route_id = serializers.PrimaryKeyRelatedField(queryset=Route.objects.all())
 
 
 class RefundSerializer(serializers.Serializer):
@@ -23,5 +24,5 @@ class RefundSerializer(serializers.Serializer):
         and create the JSON
     """
 
-    user_id = serializers.IntegerField(required=True)
-    route_id = serializers.IntegerField(required=True)
+    user_id = serializers.IntegerField(source="user.id")
+    route_id = serializers.PrimaryKeyRelatedField(queryset=Route.objects.all())

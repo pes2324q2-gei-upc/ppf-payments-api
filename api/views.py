@@ -5,13 +5,10 @@ This module contains the views for the API endpoints related to payments.
 from datetime import datetime
 from django.shortcuts import render
 from django.conf import settings
-from common.models import route
-from stripe import PaymentIntent
 from rest_framework.generics import CreateAPIView
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_400_BAD_REQUEST,
@@ -51,8 +48,8 @@ class CreatePaymentView(CreateAPIView):
                 {"error": "Payment method ID is required."}, status=HTTP_400_BAD_REQUEST
             )
 
-        if not routeId:
-            return Response({"error": "Route ID is required."}, status=HTTP_400_BAD_REQUEST)
+        if Route.objects.filter(id=routeId).exists() is False:
+            return Response({"error": "Route not exist."}, status=HTTP_400_BAD_REQUEST)
 
         route = Route.objects.get(id=routeId)
         user = User.objects.get(id=request.user.id)
@@ -83,14 +80,17 @@ class CreatePaymentView(CreateAPIView):
             return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)
 
         if paymentIntent.status == "succeeded":
-            Payment.objects.create(
-                user=user,
-                route=route,
-                amount=route.price,
-                date=datetime.now(),
-                description=f"Joined route {routeId} for ${route.price} at {datetime.now()}",
-                paymentIntentId=paymentIntent.id,
-            )
+            try:
+                Payment.objects.create(
+                    user=user,
+                    route=route,
+                    amount=route.price,
+                    date=datetime.now(),
+                    description=f"Joined route {routeId} for ${route.price} at {datetime.now()}",
+                    paymentIntentId=paymentIntent.id,
+                )
+            except Exception as e:
+                return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)
 
             return Response({"message": "Payment processed successfully."}, status=HTTP_200_OK)
         else:
@@ -109,18 +109,23 @@ class CreateRefundView(CreateAPIView):
     def post(self, request, *args, **kwargs):
         userId = request.data.get("user_id")
         routeId = request.data.get("route_id")
-        
+
         if User.objects.filter(id=userId).exists() is False:
-            return Response({"error": "User not found."}, status=HTTP_400_BAD_REQUEST)
+            return Response({"error": "User not exist."}, status=HTTP_400_BAD_REQUEST)
 
         if Route.objects.filter(id=routeId).exists() is False:
-            return Response({"error": "Route not found."}, status=HTTP_400_BAD_REQUEST)
+            return Response({"error": "Route not exist."}, status=HTTP_400_BAD_REQUEST)
 
         user = User.objects.get(id=userId)
         route = Route.objects.get(id=routeId)
 
-        paymentIntentId = Payment.objects.get(user=user, route=routeId).paymentIntentId
-        
+        if Payment.objects.filter(user=user, route=routeId).exists() is False:
+            return Response(
+                {"error": "User has not paid for this route."}, status=HTTP_400_BAD_REQUEST
+            )
+
+        paymentIntentId = Payment.objects.get(user=user, route=route, isRefunded=False).paymentIntentId
+
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
         try:
