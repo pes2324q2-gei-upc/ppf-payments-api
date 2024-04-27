@@ -18,6 +18,7 @@ from common.models.user import User
 from common.models.route import Route
 from common.models.payment import Payment
 import stripe
+from .serializers import PaymentSerializer, RefundSerializer
 
 # Create your views here.
 
@@ -34,6 +35,7 @@ class CreatePaymentView(CreateAPIView):
     Create a payment using Stripe API.
     """
 
+    serializer_class = PaymentSerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -63,17 +65,20 @@ class CreatePaymentView(CreateAPIView):
 
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
-        paymentIntent = stripe.PaymentIntent.create(
-            amount=int(priceForStripe),
-            currency="eur",
-            payment_method=paymentMethodId,  # Payment method ID from the client
-            confirm=True,  # Create and Confirm at the same time
-            automatic_payment_methods={  # enable no redirect
-                "enabled": True,
-                "allow_redirects": "never",
-            },
-            # Specify a return_url if you want to redirect the user back to a specific page after successfull payment
-        )
+        try:
+            paymentIntent = stripe.PaymentIntent.create(
+                amount=int(priceForStripe),
+                currency="eur",
+                payment_method=paymentMethodId,  # Payment method ID from the client
+                confirm=True,  # Create and Confirm at the same time
+                automatic_payment_methods={  # enable no redirect
+                    "enabled": True,
+                    "allow_redirects": "never",
+                },
+                # Specify a return_url if you want to redirect the user back to a specific page after successfull payment
+            )
+        except stripe.InvalidRequestError as e:
+            return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)
 
         if paymentIntent.status == "succeeded":
             Payment.objects.create(
@@ -95,6 +100,7 @@ class CreateRefundView(CreateAPIView):
     Create a refund using Stripe API.
     """
 
+    serializer_class = RefundSerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -108,9 +114,12 @@ class CreateRefundView(CreateAPIView):
 
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
-        refund = stripe.Refund.create(
-            payment_intent=paymentIntentId,
-        )
+        try:
+            refund = stripe.Refund.create(
+                payment_intent=paymentIntentId,
+            )
+        except stripe.InvalidRequestError as e:
+            return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)
 
         if refund.status == "succeeded":
             Payment.objects.filter(paymentIntentId=paymentIntentId).update(isRefunded=True)
