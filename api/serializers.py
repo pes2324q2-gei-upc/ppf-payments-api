@@ -24,5 +24,4 @@ class RefundSerializer(serializers.Serializer):
         and create the JSON
     """
 
-    user_id = serializers.IntegerField(source="user.id")
     route_id = serializers.PrimaryKeyRelatedField(queryset=Route.objects.all())

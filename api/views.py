@@ -107,24 +107,24 @@ class CreateRefundView(CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        userId = request.data.get("user_id")
+        user = self.request.user
         routeId = request.data.get("route_id")
 
-        if User.objects.filter(id=userId).exists() is False:
-            return Response({"error": "User not exist."}, status=HTTP_400_BAD_REQUEST)
-
-        if Route.objects.filter(id=routeId).exists() is False:
+        if not Route.objects.filter(id=routeId).exists():
             return Response({"error": "Route not exist."}, status=HTTP_400_BAD_REQUEST)
 
-        user = User.objects.get(id=userId)
         route = Route.objects.get(id=routeId)
 
-        if Payment.objects.filter(user=user, route=routeId).exists() is False:
+        if not Payment.objects.filter(user=user, route=route, isRefunded=False).exists():
             return Response(
                 {"error": "User has not paid for this route."}, status=HTTP_400_BAD_REQUEST
             )
 
-        paymentIntentId = Payment.objects.get(user=user, route=route, isRefunded=False).paymentIntentId
+        try:
+            payment = Payment.objects.get(user=user, route=route, isRefunded=False)
+            paymentIntentId = payment.paymentIntentId
+        except Exception as e:
+            return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)
 
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
