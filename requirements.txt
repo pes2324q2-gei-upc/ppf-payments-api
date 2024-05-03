@@ -1,6 +1,6 @@
 asgiref==3.7.2
 astroid==3.1.0
-black==24.2.0
+black==24.3.0
 cachetools==5.3.3
 certifi==2024.2.2
 charset-normalizer==3.3.2
@@ -19,7 +19,7 @@ google-maps-routing==0.6.7
 googleapis-common-protos==1.63.0
 grpcio==1.62.1
 grpcio-status==1.62.1
-idna==3.6
+idna==3.7
 inflection==0.5.1
 iniconfig==2.0.0
 isort==5.13.2
