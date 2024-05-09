@@ -17,16 +17,16 @@ jobs:
         # config: ${{ secrets.CONFIG }} # ssh_config; optional
         # if_key_exists: fail # replace / ignore / fail; optional (defaults to fail)
     
-    #- uses: actions/checkout@v4
-    #  with:
-    #    repository: pes2324q2-gei-upc/PowerPathFinder
-    #    sparse-checkout: |
-    #      docker-compose.yml
-    #    sparse-checkout-cone-mode: false
-#
-    #- name: Save files
-    #  run: |
-    #    mv docker-compose.yml ..
+    - uses: actions/checkout@v4
+      with:
+        repository: pes2324q2-gei-upc/PowerPathFinder
+        sparse-checkout: |
+          docker-compose.yml
+        sparse-checkout-cone-mode: false
+
+    - name: Save files
+      run: |
+        mv docker-compose.yml ..
 
     - name: Checkout of payments api
       uses: actions/checkout@v4
@@ -39,6 +39,7 @@ jobs:
     # deberian ejecutarse en el contexto configurado (el remote)
     - name: Compose Up in remote
       run: |
+       mv ../docker-compose.yml .
        docker save ${{github.event.repository.name}}:latest -o ${{github.event.repository.name}}.tar
        docker context create remote --docker "host=ssh://${{ secrets.USERNAME }}@${{ secrets.HOST }}"
        docker context use remote
