@@ -44,4 +44,4 @@ jobs:
        docker context create remote --docker "host=ssh://${{ secrets.USERNAME }}@${{ secrets.HOST }}"
        docker context use remote
        docker load -i ${{github.event.repository.name}}.tar
-       docker compose -f docker-compose.yml up chat-engine -d
+       docker compose -f docker-compose.yml up payments-api -d
