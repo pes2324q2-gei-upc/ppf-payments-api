@@ -39,7 +39,6 @@ jobs:
     # deberian ejecutarse en el contexto configurado (el remote)
     - name: Compose Up in remote
       run: |
-       mv ../docker-compose.yml .
        docker save ${{github.event.repository.name}}:latest -o ${{github.event.repository.name}}.tar
        docker context create remote --docker "host=ssh://${{ secrets.USERNAME }}@${{ secrets.HOST }}"
        docker context use remote
