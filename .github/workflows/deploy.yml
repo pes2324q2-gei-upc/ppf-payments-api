@@ -31,8 +31,10 @@ jobs:
       run: |
         mv docker-compose.yml ..
 
-    - name: Checkout of user api
+    - name: Checkout of payments api
       uses: actions/checkout@v4
+      with:
+        ref: main
 
     - name: Docker build and save image
       run: |
