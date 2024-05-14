@@ -1,7 +1,10 @@
 name: Turbo deploy to EC2
 
 on:
-  workflow_dispatch:    
+  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
@@ -28,7 +31,7 @@ jobs:
       run: |
         mv docker-compose.yml ..
 
-    - name: Checkout of payments api
+    - name: Checkout of user api
       uses: actions/checkout@v4
 
     - name: Docker build and save image
