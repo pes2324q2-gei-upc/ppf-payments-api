@@ -45,8 +45,11 @@ jobs:
     - name: Compose Up in remote
       run: |
        mv ../docker-compose.yml .
+       touch .env
        docker save ${{github.event.repository.name}}:latest -o ${{github.event.repository.name}}.tar
        docker context create remote --docker "host=ssh://${{ secrets.USERNAME }}@${{ secrets.HOST }}"
        docker context use remote
+       docker rm -f payments-api
        docker load -i ${{github.event.repository.name}}.tar
        docker compose -f docker-compose.yml up payments-api -d
+       docker system prune -f
