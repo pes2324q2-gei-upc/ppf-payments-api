@@ -45,7 +45,7 @@ jobs:
     - name: Compose Up in remote
       run: |
        mv ../docker-compose.yml .
-       touch .env
+       echo "${{ secrets.ENV }}" > .env
        docker save ${{github.event.repository.name}}:latest -o ${{github.event.repository.name}}.tar
        docker context create remote --docker "host=ssh://${{ secrets.USERNAME }}@${{ secrets.HOST }}"
        docker context use remote
