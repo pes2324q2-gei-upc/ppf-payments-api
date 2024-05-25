@@ -80,11 +80,9 @@ class CreatePaymentViewTest(APITestCase):
         message = json.loads(response.content.decode("utf-8"))  # Decode the response to JSON
         self.assertEqual(message.get("message"), "Payment processed successfully.")
 
-        try:
-            payment = Payment.objects.get(user=self.user, route=self.route)
-        except Payment.DoesNotExist:
-            payment = None
-        self.assertIsNotNone(payment)
+        payment_exists = Payment.objects.filter(user=self.user, route=self.route).exists()
+        self.assertTrue(payment_exists)
+        payment = Payment.objects.get(user=self.user, route=self.route)
 
         if payment is not None:
             self.assertEqual(payment.amount, self.route.price)
