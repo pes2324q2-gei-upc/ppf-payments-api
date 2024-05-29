@@ -1,0 +1,30 @@
+[run]
+source = ppf-user-api
+
+[report]
+omit =
+    */migrations/*
+    */tests/*
+    ./api/__init__.py
+    ./api/admin.py
+    ./api/apps.py
+    ./api/tests/__init__.py
+    ./api/tests/test_payment.py
+    ./api/tests/test_refund.py
+    ./paymentsApi/__init__.py
+    ./paymentsApi/settings.py
+    ./paymentsApi/asgi.py
+    ./paymentsApi/urls.py
+    ./paymentsApi/wsgi.py
+    ./ppf/common/__init__.py
+    ./ppf/common/apps.py
+    ./ppf/common/migrations/__init__.py
+    ./ppf/common/migrations/0001_initial.py
+    ./ppf/common/models/__init__.py
+    ./ppf/common/models/payment.py
+    ./ppf/common/models/route.py
+    ./ppf/common/models/user.py
+    manage.py
+
+[html]
+directory = coverage_html_report
